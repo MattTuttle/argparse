@@ -14,6 +14,7 @@ typedef ArgumentDef = {
 	?numArgs: Int,
 	?defaultValue: String,
 	?optional: Bool,
+	?help:String,
 }
 
 class Argument
@@ -71,7 +72,7 @@ class Argument
 		name = Argument.getNameFromArray(def.flags);
 		positional = Argument.isPositional(def.flags);
 		numArgs = def.numArgs == null ? 0 : def.numArgs;
-		optional = def.optional == null ? false : def.optional;
+		optional = def.optional == null ? true : def.optional;
 		defaultValue = def.defaultValue;
 	}
 }
