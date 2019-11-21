@@ -1,0 +1,11 @@
+{
+	"name": "argparser",
+	"license": "MIT",
+	"version": "0.1.0",
+	"description": "Haxe Argument Parsing",
+	"url": "http://github.com/MattTuttle/argparser.git",
+	"releasenote": "Initial version",
+	"contributors": ["heardtheword"],
+	"dependencies": {},
+	"haxe": "4.1+"
+}

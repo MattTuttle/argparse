@@ -1,0 +1,5 @@
+-D test
+-cp test
+-lib utest
+-x TestMain
+-cmd rm TestMain.n
