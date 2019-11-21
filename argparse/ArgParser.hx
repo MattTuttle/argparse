@@ -13,10 +13,10 @@ abstract Flags(Array<String>) from Array<String> to Array<String>
 }
 
 typedef Argument = {
-	var flags: Flags;
-	var ?numArgs: Int;
-	var ?defaultValue: String;
-	var ?optional: Bool;
+	flags: Flags,
+	?numArgs: Int,
+	?defaultValue: String,
+	?optional: Bool,
 }
 
 @:access(argparse.Namespace)
