@@ -1,23 +1,8 @@
 package argparse;
 
 import argparse.Namespace;
+import argparse.Argument;
 import haxe.ds.StringMap;
-
-@:forward(iterator)
-abstract Flags(Array<String>) from Array<String> to Array<String>
-{
-	@:from static function fromString(str:String):Flags
-	{
-		return [str];
-	}
-}
-
-typedef Argument = {
-	flags: Flags,
-	?numArgs: Int,
-	?defaultValue: String,
-	?optional: Bool,
-}
 
 @:access(argparse.Namespace)
 class ArgParser
@@ -30,11 +15,19 @@ class ArgParser
 	/**
 	 * Add an argument to be parsed
 	 */
-	public function addArgument(arg:Argument)
+	public function addArgument(def:ArgumentDef)
 	{
-		for (flag in arg.flags)
+		var arg = new Argument(def);
+		if (arg.positional)
 		{
-			_args.set(flag, arg);
+			_positional.push(arg);
+		}
+		else
+		{
+			for (flag in def.flags)
+			{
+				_flags.set(flag, arg);
+			}
 		}
 	}
 
@@ -45,44 +38,70 @@ class ArgParser
 	{
 		var ns = new Namespace();
 		var it = args.iterator();
+		var positional = _positional.iterator();
 		while (it.hasNext())
 		{
 			var arg = it.next();
-			var rule = _args.get(arg);
+			var rule = _flags.get(arg);
 			if (rule == null)
 			{
-				throw 'No rule for $arg';
+				if (positional.hasNext())
+				{
+					rule = positional.next();
+				}
+				else
+				{
+					throw 'No rule for $arg';
+				}
 			}
-
-			var name = rename(rule.flags[0]);
-			var numArgs = rule.numArgs == null ? 0 : rule.numArgs;
-			if (numArgs > 0)
+			if (rule.numArgs > 0)
 			{
-				for (_ in 0...numArgs)
+				for (_ in 0...rule.numArgs)
 				{
 					if (!it.hasNext())
 					{
 						throw 'Not enough arguments for $arg';
 					}
-					ns.set(name, it.next());
+					ns.set(rule.name, it.next());
 				}
 			}
 			else
 			{
-				ns.set(name, rule.defaultValue);
+				if (rule.positional)
+				{
+					ns.set(rule.name, arg);
+				}
+				else
+				{
+					ns.set(rule.name, rule.defaultValue);
+				}
 			}
 		}
+		verify(ns);
 		return ns;
 	}
 
-	/**
-	 * Renames the rule by removing dashes
-	 */
-	function rename(name:String):String
+	function verify(ns:Namespace)
 	{
-		return StringTools.replace(name, '-', '');
+		for (rule in _flags)
+		{
+			if (rule.optional) continue; // skip optional verification for now
+
+			if (ns.exists(rule.name))
+			{
+				if (rule.numArgs != ns.get(rule.name).length)
+				{
+					throw 'Invalid number of arguments for ${rule.name}';
+				}
+			}
+			else
+			{
+				throw 'Expected argument for ${rule.name}';
+			}
+		}
 	}
 
-	var _args = new StringMap<Argument>();
+	var _positional = new Array<Argument>();
+	var _flags = new StringMap<Argument>();
 
 }
