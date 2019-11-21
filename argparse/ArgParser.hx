@@ -19,6 +19,7 @@ typedef Argument = {
 	var ?optional: Bool;
 }
 
+@:access(argparse.Namespace)
 class ArgParser
 {
 
@@ -31,17 +32,18 @@ class ArgParser
 	 */
 	public function addArgument(arg:Argument)
 	{
-		if (arg.numArgs == null) arg.numArgs = 0;
-		if (arg.optional == null) arg.optional = false;
 		for (flag in arg.flags)
 		{
 			_args.set(flag, arg);
 		}
 	}
 
+	/**
+	 * Parse the arguments passed by matching them with the rules provided
+	 */
 	public function parse(args:Array<String>):Namespace
 	{
-		var result = new Namespace();
+		var ns = new Namespace();
 		var it = args.iterator();
 		while (it.hasNext())
 		{
@@ -53,23 +55,24 @@ class ArgParser
 			}
 
 			var name = rename(rule.flags[0]);
-			if (rule.numArgs > 0)
+			var numArgs = rule.numArgs == null ? 0 : rule.numArgs;
+			if (numArgs > 0)
 			{
-				for (_ in 0...rule.numArgs)
+				for (_ in 0...numArgs)
 				{
 					if (!it.hasNext())
 					{
 						throw 'Not enough arguments for $arg';
 					}
-					result.set(name, it.next());
+					ns.set(name, it.next());
 				}
 			}
 			else
 			{
-				result.set(name, rule.defaultValue);
+				ns.set(name, rule.defaultValue);
 			}
 		}
-		return result;
+		return ns;
 	}
 
 	/**

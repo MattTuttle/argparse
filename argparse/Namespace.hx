@@ -2,32 +2,52 @@ package argparse;
 
 import haxe.ds.StringMap;
 
+/**
+ * Contains a hash of values
+ */
 class Namespace
 {
-    public function new() {}
+	public function new() {}
 
-    public inline function get(name:String):Array<String>
-    {
-        return values.get(name);
-    }
-
-    public inline function exists(name:String):Bool
-    {
-        return values.exists(name);
-    }
-
-	public function set(name:String, value:String):Void
+	/**
+	 * Get the values associated with the name requested
+	 * @exception if name doesn't exist
+	 */
+	public function get(name:String):Array<String>
 	{
-        if (!exists(name))
-        {
-            values.set(name, []);
-        }
-        if (value != null)
-        {
-            var v = values.get(name);
-            v.push(value);
-        }
+		var v = values.get(name);
+		if (v != null)
+		{
+			return v;
+		}
+		else
+		{
+			throw 'No value for $name';
+		}
 	}
 
-    var values = new StringMap<Array<String>>();
+	/**
+	 * Check if a value exists
+	 */
+	public inline function exists(name:String):Bool
+	{
+		return values.exists(name);
+	}
+
+	function set(name:String, value:Null<String>):Void
+	{
+		var v = values.get(name);
+		if (v == null)
+		{
+			v = [];
+			values.set(name, v);
+		}
+
+		if (value != null)
+		{
+			v.push(value);
+		}
+	}
+
+	var values = new StringMap<Array<String>>();
 }

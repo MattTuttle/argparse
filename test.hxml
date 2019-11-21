@@ -1,3 +1,4 @@
+--macro nullSafety('argparse')
 -D test
 -cp test
 -lib utest

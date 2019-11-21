@@ -22,6 +22,12 @@ class TestArgs extends Test
 		Assert.notEquals(ra, rb);
 	}
 
+	public function testRaiseOnMissingResult()
+	{
+		var a = new ArgParser();
+		Assert.raises(() -> a.parse([]).get("foo"));
+	}
+
 	public function testOrdering()
 	{
 		var a = new ArgParser();
@@ -48,7 +54,7 @@ class TestArgs extends Test
 		a.addArgument({flags: '-o', numArgs: 1});
 		Assert.same(['filename'], a.parse(['-o', 'filename']).get("o"));
 
-		Assert.raises(function() { a.parse(['hi', '-o']); });
+		Assert.raises(() -> a.parse(['hi', '-o']));
 	}
 
 	public function testMultipleArguments()
@@ -57,7 +63,7 @@ class TestArgs extends Test
 		a.addArgument({flags: ['--files', '-f'], numArgs: 3});
 		Assert.same(['a', 'bb', 'cdef'], a.parse(['-f', 'a', 'bb', 'cdef']).get("files"));
 
-		Assert.raises(function() { a.parse(['-f', 'a', 'b']); });
+		Assert.raises(() -> a.parse(['-f', 'a', 'b']));
 	}
 
 }
