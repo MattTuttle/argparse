@@ -33,13 +33,13 @@ class TestArgs extends Test
 
 	public function testMissingArgument()
 	{
-		a.addArgument({flags: "-hello"});
+		a.addArgument({flags: "-hello", optional: false});
 		Assert.raises(() -> a.parse([]));
 	}
 
 	public function testOptionalMissingArgument()
 	{
-		a.addArgument({flags: "-hello", optional: true});
+		a.addArgument({flags: "-hello"});
 		Assert.isFalse(a.parse([]).exists("-hello"));
 	}
 
