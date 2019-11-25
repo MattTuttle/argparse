@@ -92,7 +92,10 @@ class TestArgs extends Test
 	public function testMultiplePositionalArgument()
 	{
 		a.addArgument({flags: "hello"});
-		Assert.same(["foobar"], a.parse(["foobar"]).get("hello"));
+		a.addArgument({flags: "foo"});
+		var result = a.parse(["foo", "bar"]);
+		Assert.same(["foo"], result.get("hello"));
+		Assert.same(["bar"], result.get("foo"));
 	}
 
 }

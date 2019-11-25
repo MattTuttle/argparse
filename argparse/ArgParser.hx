@@ -34,7 +34,7 @@ class ArgParser
 	/**
 	 * Parse the arguments passed by matching them with the rules provided
 	 */
-	public function parse(args:Array<String>):Namespace
+	public function parse(args:Array<String>, verify:Bool=true):Namespace
 	{
 		var ns = new Namespace();
 		var it = args.iterator();
@@ -77,7 +77,10 @@ class ArgParser
 				}
 			}
 		}
-		verify(ns);
+		if (verify)
+		{
+			this.verify(ns);
+		}
 		return ns;
 	}
 
