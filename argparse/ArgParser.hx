@@ -90,7 +90,7 @@ class ArgParser
 	/**
 	 * Parse the arguments passed by matching them with the rules provided
 	 */
-	public function parse(args:Array<String>, verify:Bool=true):Namespace
+	public function parse(args:Array<String>, validate:Bool=true):Namespace
 	{
 		var ns = new Namespace();
 		var it = new ArgIterator(args);
@@ -106,7 +106,7 @@ class ArgParser
 					rule = positional.next();
 					it.stepBack();
 				}
-				else if (verify)
+				else if (validate)
 				{
 					throw 'No rule for $arg';
 				}
@@ -119,7 +119,7 @@ class ArgParser
 				ns.set(rule.name, arg);
 			}
 		}
-		if (verify)
+		if (validate)
 		{
 			this.validate(ns);
 		}
@@ -134,13 +134,11 @@ class ArgParser
 			switch (rule.numArgs)
 			{
 				case Range(min, max):
-					trace(rule.name, found, min, max);
 					if (found < min || found > max)
 					{
 						throw 'Invalid number of arguments for ${rule.name}';
 					}
 				case Infinite(min):
-					trace(rule.name, found, min, "inf");
 					if (found < min)
 					{
 						throw 'Invalid number of arguments for ${rule.name}';

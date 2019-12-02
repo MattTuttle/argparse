@@ -96,7 +96,7 @@ class TestArgs extends Test
 		Assert.equals(0, a.parse([]).get("question").length);
 	}
 
-	public function testNoThrowWhenVerifyIsFalse()
+	public function testNoThrowWhenValidateIsFalse()
 	{
 		Assert.isFalse(a.parse(["no_throw"], false).exists("none"));
 	}
