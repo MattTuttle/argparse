@@ -4,6 +4,34 @@ import argparse.Namespace;
 import argparse.Argument;
 import haxe.ds.StringMap;
 
+class ArgIterator
+{
+	public function new(data:Array<String>)
+	{
+		this.data = data;
+	}
+
+	public function stepBack():Void
+	{
+		index = Std.int(Math.max(index - 1, 0));
+	}
+
+	public inline function hasNext():Bool
+	{
+		return index < data.length;
+	}
+
+	public function next():String
+	{
+		var current = data[index];
+		index += 1;
+		return current;
+	}
+
+	private final data:Array<String>;
+	private var index:Int = 0;
+}
+
 @:access(argparse.Namespace)
 class ArgParser
 {
@@ -31,13 +59,41 @@ class ArgParser
 		}
 	}
 
+	function matchArgs(it:ArgIterator, rule:Argument):Array<Null<String>>
+	{
+		var vals:Array<Null<String>> = [];
+		var max = switch (rule.numArgs) {
+			case Range(_, max):
+				max;
+			case Infinite(_):
+				null;
+		}
+
+		if (max == 0)
+		{
+			vals.push(rule.positional ? it.next() : rule.defaultValue);
+		}
+		else
+		{
+			while (it.hasNext())
+			{
+				vals.push(it.next());
+				if (max != null && vals.length >= max)
+				{
+					break;
+				}
+			}
+		}
+		return vals;
+	}
+
 	/**
 	 * Parse the arguments passed by matching them with the rules provided
 	 */
 	public function parse(args:Array<String>, verify:Bool=true):Namespace
 	{
 		var ns = new Namespace();
-		var it = args.iterator();
+		var it = new ArgIterator(args);
 		var positional = _positional.iterator();
 		while (it.hasNext())
 		{
@@ -48,59 +104,60 @@ class ArgParser
 				if (positional.hasNext())
 				{
 					rule = positional.next();
+					it.stepBack();
 				}
 				else
 				{
 					throw 'No rule for $arg';
 				}
 			}
-			if (rule.numArgs > 0)
-			{
-				for (_ in 0...rule.numArgs)
-				{
-					if (!it.hasNext())
-					{
-						throw 'Not enough arguments for $arg';
-					}
-					ns.set(rule.name, it.next());
-				}
-			}
-			else
-			{
-				if (rule.positional)
-				{
-					ns.set(rule.name, arg);
-				}
-				else
-				{
-					ns.set(rule.name, rule.defaultValue);
-				}
+			for (arg in matchArgs(it, rule)) {
+				ns.set(rule.name, arg);
 			}
 		}
 		if (verify)
 		{
-			this.verify(ns);
+			this.validate(ns);
 		}
 		return ns;
 	}
 
-	function verify(ns:Namespace)
+	function validateRule(rule:Argument, ns:Namespace)
+	{
+		if (ns.exists(rule.name))
+		{
+			var found = ns.get(rule.name).length;
+			switch (rule.numArgs)
+			{
+				case Range(min, max):
+					trace(rule.name, found, min, max);
+					if (found < min || found > max)
+					{
+						throw 'Invalid number of arguments for ${rule.name}';
+					}
+				case Infinite(min):
+					trace(rule.name, found, min, "inf");
+					if (found < min)
+					{
+						throw 'Invalid number of arguments for ${rule.name}';
+					}
+			}
+		}
+		else if (!rule.optional)
+		{
+			throw 'Expected argument for ${rule.name}';
+		}
+	}
+
+	function validate(ns:Namespace)
 	{
 		for (rule in _flags)
 		{
-			if (rule.optional) continue; // skip optional verification for now
-
-			if (ns.exists(rule.name))
-			{
-				if (rule.numArgs != ns.get(rule.name).length)
-				{
-					throw 'Invalid number of arguments for ${rule.name}';
-				}
-			}
-			else
-			{
-				throw 'Expected argument for ${rule.name}';
-			}
+			validateRule(rule, ns);
+		}
+		for (rule in _positional)
+		{
+			validateRule(rule, ns);
 		}
 	}
 

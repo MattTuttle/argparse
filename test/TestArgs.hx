@@ -28,7 +28,7 @@ class TestArgs extends Test
 
 	public function testRaiseOnMissingResult()
 	{
-		Assert.raises(() -> a.parse([]).get("foo"));
+		Assert.equals(0, a.parse([]).get("foo").length);
 	}
 
 	public function testMissingArgument()
@@ -71,7 +71,7 @@ class TestArgs extends Test
 
 	public function testMultipleArguments()
 	{
-		a.addArgument({flags: ['--files', '-f'], numArgs: 3});
+		a.addArgument({flags: ['--files', '-f'], numArgs: 3, optional: false});
 		Assert.same(['a', 'bb', 'cdef'], a.parse(['-f', 'a', 'bb', 'cdef']).get("files"));
 
 		Assert.raises(() -> a.parse(['-f', 'a', 'b']));
@@ -85,17 +85,41 @@ class TestArgs extends Test
 
 	public function testPositionalArgument()
 	{
-		a.addArgument({flags: "hello"});
-		Assert.same(["foobar"], a.parse(["foobar"]).get("hello"));
+		a.addArgument({flags: "posarg"});
+		Assert.same(["foobar"], a.parse(["foobar"]).get("posarg"));
+	}
+
+	public function testOptionalArgument()
+	{
+		a.addArgument({flags: "question", numArgs: '?'});
+		Assert.equals(1, a.parse(["foobar"]).get("question").length);
+		Assert.equals(0, a.parse([]).get("question").length);
 	}
 
 	public function testMultiplePositionalArgument()
 	{
-		a.addArgument({flags: "hello"});
-		a.addArgument({flags: "foo"});
-		var result = a.parse(["foo", "bar"]);
-		Assert.same(["foo"], result.get("hello"));
-		Assert.same(["bar"], result.get("foo"));
+		a.addArgument({flags: "first"});
+		a.addArgument({flags: "second"});
+		var result = a.parse(["one", "two"]);
+		Assert.same(["one"], result.get("first"));
+		Assert.same(["two"], result.get("second"));
+	}
+
+	public function testPositionalArgumentWithNumArgs()
+	{
+		a.addArgument({flags: "get_two", numArgs: 2});
+		Assert.same(["foo", "bar"], a.parse(["foo", "bar"]).get("get_two"));
+		Assert.raises(() -> a.parse(["single"]));
+		Assert.raises(() -> a.parse(["one", "two", "three"]));
+	}
+
+	public function testWithMoreThanOneArg()
+	{
+		a.addArgument({flags: "multiple", numArgs: '+'});
+		Assert.equals(1, a.parse(["a"]).get("multiple").length);
+		Assert.equals(2, a.parse(["a", "d"]).get("multiple").length);
+		Assert.equals(4, a.parse(["a", "b", "c", "d"]).get("multiple").length);
+		Assert.raises(() -> a.parse([]));
 	}
 
 }

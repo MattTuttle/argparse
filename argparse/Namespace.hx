@@ -10,20 +10,12 @@ class Namespace
 	public function new() {}
 
 	/**
-	 * Get the values associated with the name requested
-	 * @exception if name doesn't exist
+	 * Get the values associated with the name requested. Returns an empty array if value doesn't exist.
 	 */
 	public function get(name:String):Array<String>
 	{
 		var v = values.get(name);
-		if (v != null)
-		{
-			return v;
-		}
-		else
-		{
-			throw 'No value for $name';
-		}
+		return v == null ? [] : v;
 	}
 
 	/**
@@ -34,7 +26,7 @@ class Namespace
 		return values.exists(name);
 	}
 
-	function set(name:String, value:Null<String>):Void
+	function set(name:String, value:Null<String>):Int
 	{
 		var v = values.get(name);
 		if (v == null)
@@ -47,6 +39,7 @@ class Namespace
 		{
 			v.push(value);
 		}
+		return v.length;
 	}
 
 	var values = new StringMap<Array<String>>();

@@ -9,9 +9,42 @@ abstract Flags(Array<String>) from Array<String> to Array<String>
 	}
 }
 
+enum Num
+{
+	Range(min:Int, max:Int);
+	Infinite(min:Int);
+}
+
+@:forward(min, max)
+abstract Range(Num) from Num to Num
+{
+	@:from static function fromString(str:String):Range
+	{
+		return switch (str)
+		{
+			case '+':
+				Infinite(1);
+			case '*':
+				Infinite(0);
+			case '?':
+				Range(0, 1);
+			default:
+				// TODO: parse better range (e.g. 1-5)
+				var n = Std.parseInt(str);
+				var min = n == null ? 0 : n;
+				Range(min, min);
+		}
+	}
+
+	@:from static function fromInt(val:Int):Range
+	{
+		return Range(val, val);
+	}
+}
+
 typedef ArgumentDef = {
 	flags: Flags,
-	?numArgs: Int,
+	?numArgs: Range,
 	?defaultValue: String,
 	?optional: Bool,
 	?help:String,
@@ -20,7 +53,7 @@ typedef ArgumentDef = {
 class Argument
 {
 	public final name:String;
-	public final numArgs:Int;
+	public final numArgs:Range;
 	public final optional:Bool;
 	public final positional:Bool;
 	public final defaultValue:Null<String>;
@@ -71,8 +104,29 @@ class Argument
 	{
 		name = Argument.getNameFromArray(def.flags);
 		positional = Argument.isPositional(def.flags);
-		numArgs = def.numArgs == null ? 0 : def.numArgs;
-		optional = def.optional == null ? true : def.optional;
 		defaultValue = def.defaultValue;
+
+		if (def.numArgs == null)
+		{
+			numArgs = positional ? 1 : 0;
+		}
+		else
+		{
+			numArgs = def.numArgs;
+		}
+
+		if (def.optional == null)
+		{
+			optional = switch (numArgs) {
+				case Range(min, _):
+					min == 0;
+				case Infinite(min):
+					min == 0;
+			}
+		}
+		else
+		{
+			optional = def.optional;
+		}
 	}
 }
