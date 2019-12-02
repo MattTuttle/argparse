@@ -106,9 +106,13 @@ class ArgParser
 					rule = positional.next();
 					it.stepBack();
 				}
-				else
+				else if (verify)
 				{
 					throw 'No rule for $arg';
+				}
+				else
+				{
+					continue;
 				}
 			}
 			for (arg in matchArgs(it, rule)) {

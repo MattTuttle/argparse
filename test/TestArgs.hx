@@ -96,6 +96,11 @@ class TestArgs extends Test
 		Assert.equals(0, a.parse([]).get("question").length);
 	}
 
+	public function testNoThrowWhenVerifyIsFalse()
+	{
+		Assert.isFalse(a.parse(["no_throw"], false).exists("none"));
+	}
+
 	public function testMultiplePositionalArgument()
 	{
 		a.addArgument({flags: "first"});
